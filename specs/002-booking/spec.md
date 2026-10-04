@@ -1,6 +1,6 @@
 # SPEC-BOOKING | การจองงานบริการซ่อมบำรุง (UC-07)
 
-version: 1.2 | status: baselined (B1) + CR-01 | owner: กลุ่ม X / PO: SH-01 | date: 2569-10-04
+version: 1.2 | status: Draft v2 | owner: กลุ่ม X / PO: SH-01 | date: 2569-10-04
 baseline: B1 (2569-09-06) | supersedes: v1.1 | related: SPEC-CANCEL (draft) | feature file: booking.feature v1.2
 
 ## Change Log
@@ -10,6 +10,7 @@ baseline: B1 (2569-09-06) | supersedes: v1.1 | related: SPEC-CANCEL (draft) | fe
 | 1.0 (v1) | 2569-09-06 | ประกอบ 11 ส่วนจาก catalogue, UC-07, booking.feature, models, rules เข้า Baseline B1 | บทเรียน Living Specification | กลุ่ม X |
 | 1.1 (v2) | 2569-10-04 | /clarify: REQ-FN-041 ใส่ระยะล็อก 10 นาที (EV-041); เพิ่ม AS-06, AS-07; เพิ่ม Q-23; Q-18 ยังเปิด | AI ถาม 7 ข้อ ทีมตอบได้ 4 ข้อ ต้องถาม 3 ข้อ | AI ร่าง, ทีมตรวจ |
 | 1.2 (v3) | 2569-10-04 | CR-01: AC-07-04 นิยาม "ใกล้เคียง" = ไม่เกิน 3 ชั่วโมง | /implement T-04 เขียน assert ไม่ได้ (GAP-05) | กลุ่ม X, RE lead อนุมัติ |
+| 1.3 (v4) | 2569-10-04 | /clarify: Q-22 ระบุ ServiceAddress.geoPoint เป็น PII และต้องเก็บภายในระบบเท่านั้น | ทีมตอบคำถาม Q5 ให้ชัดถึงการคุ้มครองข้อมูล geoPoint | RE lead + กลุ่ม X |
 | (รอ) | | CR-02: REQ-QA-003 เขียนใหม่ด้วย QAS | AC-07-08 ทดสอบไม่ได้ (GAP-08) ดู quality-requirements.md | รอ SH-01 |
 
 ## 1. Intent
@@ -68,7 +69,7 @@ AC-07-04 แก้ตาม CR-01 แล้ว | AC-07-08 ฉบับวัด�
 ## 7. Data
 
 Job(status, depositAmount, scheduledStart) | TimeSlot(state, holdExpiresAt) | Payment(result, gatewayRef) | Refund(amount, rule)
-Customer.phone เป็น PII (REQ-PRV-002) | ServiceAddress.geoPoint เป็น PII ไม่มี REQ-PRV รองรับ (Q-22)
+Customer.phone เป็น PII (REQ-PRV-002) | ServiceAddress.geoPoint เป็น PII ต้องเก็บภายในระบบเท่านั้น ไม่ส่งออกนอกระบบ (AS-08)
 เก็บประวัติการเปลี่ยนสถานะงาน 24 เดือน (REQ-DAT-002)
 
 ## 8. Constraints
@@ -84,11 +85,11 @@ Customer.phone เป็น PII (REQ-PRV-002) | ServiceAddress.geoPoint เป�
 | Q-14 | BR-01 R3 ลูกค้ายกเลิกขณะช่างเดินทาง คืนเท่าไร | SH-01 | 11 ต.ค. | ไม่อนุญาตให้ยกเลิก ตอบ "ติดต่อ call center" |
 | Q-18 | ระยะล็อก 10 นาที (EV-041 ปากเปล่า) ขอยืนยันเป็นลายลักษณ์อักษร | Ops lead | 11 ต.ค. | 10 นาที (config HOLD_MINUTES) |
 | Q-19 | gateway-timeout ตามสัญญาคือกี่วินาที | Dev lead | 11 ต.ค. | 30 วินาที (config GATEWAY_TIMEOUT_SECONDS) ดู GAP-07 |
-| Q-22 | ServiceAddress.geoPoint ต้องมี REQ-PRV ไหม | RE lead | 11 ต.ค. | เก็บ แต่ไม่ส่งออกนอกระบบ |
 | Q-23 | ถ้าลูกค้าปิดเบราว์เซอร์ระหว่างล็อก ใครปลดล็อก (คำถามจากกลุ่มข้างเคียง) | กลุ่ม X | 11 ต.ค. | หมดอายุเองตาม HOLD_MINUTES (AS-07) |
 | AS-03 | ลูกค้าหนึ่งคนมีที่อยู่ให้บริการได้หลายที่ | | | โมเดลรองรับ 1..* |
 | AS-06 | "ช่างที่ว่างใน 7 วัน" นับจากวันนี้ไม่รวมวันนี้ (ทีมตัดสินใจเอง ตอน /clarify) | | | 7 วันถัดไป |
 | AS-07 | ล็อกหมดอายุเองโดยไม่ต้องมีใครปลด ระบบตรวจตอนมีคำขอถัดไป (ทีมตัดสินใจเอง) | | | ตรวจ holdExpiresAt ทุกครั้งที่อ่าน slot |
+| AS-08 | ServiceAddress.geoPoint ถือเป็น PII ของข้อมูลที่อยู่บริการ: เก็บภายในระบบเท่านั้น และไม่ส่งออกนอกระบบ | RE lead | 4 ต.ค. | ไม่ส่งออกนอกระบบ |
 
 ## 10. Decision Log
 

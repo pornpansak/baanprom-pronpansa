@@ -33,6 +33,9 @@ class ServiceAddress(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     customer_id: Mapped[int] = mapped_column(ForeignKey("customers.id"))
     text: Mapped[str] = mapped_column(String(200))
+    # AS-08 / Q-22: geoPoint ถือเป็น PII ของข้อมูลที่อยู่บริการ จึงเก็บภายในระบบเท่านั้น
+    # ไม่ส่งออกไปภายนอกหรือแสดงผ่าน API สาธารณะ; lat/lng ใช้สำหรับคำนวณภายในระบบเท่านั้น
+    geo_point: Mapped[str | None] = mapped_column(String(100), nullable=True)
     lat: Mapped[float] = mapped_column(Float)
     lng: Mapped[float] = mapped_column(Float)
 

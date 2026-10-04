@@ -111,3 +111,39 @@ AI ถาม: ยอดมัดจำบนหน้าจอเอาจาก
 cd backend && pytest -v -k "AC_" 2>&1 | tee ../specs/002-booking/test-run.txt  ผล 15 passed, 1 skipped
 cd frontend && npm test  ผล 1 passed
 กรอก ac-results.md รอบที่ 2 และสรุป gaps.md 10 แถว
+
+## #35 | 4 ต.ค. 2569 | Copilot Chat (Agent) ใน Codespaces | /clarify specs/002-booking/spec.md
+
+AI ถามคำถาม Q5: ServiceAddress.geoPoint ควรถือว่าเป็นข้อมูลที่ต้องปกป้องเช่นเดียวกับเบอร์โทรหรือเป็นข้อมูลที่ไม่ส่งออกนอกระบบเท่านั้น
+ทีมตอบ: ถือเป็น PII และต้องเก็บภายในระบบเท่านั้น ไม่ส่งออกนอกระบบ
+AI แก้ spec.md โดย
+- ปรับข้อความใน Section 7 Data ให้ชัดว่า ServiceAddress.geoPoint เป็น PII ที่เก็บภายในระบบเท่านั้น
+- ย้าย Q-22 ไปเป็น AS-08 ใน Section 9 Open Questions และ Assumptions
+- เปลี่ยน status จาก baselined เป็น Draft v2
+ผล: spec.md อัปเดตพร้อมระบุเงื่อนไขความเป็นส่วนตัวที่ชัดเจน
+
+## #36 | 4 ต.ค. 2569 | Copilot Chat (Agent) ใน Codespaces | /tasks specs/002-booking/spec.md
+
+AI ตรวจ spec.md + plan.md + AGENTS.md แล้วพบว่า spec อยู่ใน Draft v2 และ plan.md ครอบคลุม requirement ตามสเปกได้ครบ
+AI จัด task เป็น 11 งานตามลำดับพึ่งพา: T-01 ตั้งโครงโปรเจกต์, T-02 โมเดลข้อมูล, T-03 ค้นช่าง/ล็อก slot, T-04 งานและชำระ, T-05 inquiry, T-06 refund, T-07 notify, T-08 privacy, T-09 load test, T-10 frontend, T-11 integration จริง
+ทีมตรวจแล้วเห็นว่า
+- T-05 ผูกกับ Q-19 จึงคงสถานะ "รอ Q-19"
+- T-06 ผูกกับ Q-14 จึงคงสถานะ "รอ Q-14"
+- AC ทั้ง 10 ตัวมี task ครอบคลุมแล้ว
+- Constraint/IF ที่สำคัญรวมในตารางตรวจความครบครบทุกตัว
+ผล: tasks.md ถูกอัปเดตเป็นเวอร์ชันที่สอดคล้องกับ spec v2 และ plan.md ชัดเจนมากขึ้น
+
+## #37 | 4 ต.ค. 2569 | Copilot Chat (Agent) ใน Codespaces | /implement T-01 specs/002-booking/tasks.md
+
+AI ทำตาม task T-01 โดยไม่แตะส่วนอื่นนอกช่วง "ไฟล์ที่แตะ"
+ไฟล์ที่แก้: backend/requirements.txt, backend/pytest.ini, backend/app/config.py, backend/app/db/session.py, backend/app/db/models.py, backend/app/db/migrations/m001_init.py, backend/app/main.py, backend/tests/conftest.py, frontend/package.json, frontend/vite.config.js, frontend/src/index.css
+ผล: backend test รันผ่านแล้ว `cd backend && pytest -q` => 15 passed, 1 skipped ใน 0.90s
+สิ่งที่ทีมควรตรวจด้วยตาก่อน commit: ตรวจว่า model และ schema สอดคล้องกับ spec โดยเฉพาะ PII ที่ต้องปกป้อง (Customer.phone, ServiceAddress.geoPoint) และว่า task ต่อไปยังไม่ได้ล่วงเลยไปใช้ Q-14 / Q-19
+
+## #38 | 4 ต.ค. 2569 | Copilot Chat (Agent) ใน Codespaces | /implement T-02 specs/002-booking/tasks.md
+
+AI ตรวจ 3 อย่างก่อนเริ่ม: task T-02 อยู่ในสถานะ "พร้อมทำ" และ T-01 เสร็จแล้ว เหลือเฉพาะ "ไฟล์ที่แตะ" อย่างถูกต้อง
+AI ปรับ model ของ ServiceAddress ให้มีฟิลด์ `geo_point` ที่ชัดเจนว่าเป็น PII ของข้อมูลที่อยู่และต้องเก็บภายในระบบเท่านั้น พร้อมคอมเมนต์อ้างถึง AS-08 / Q-22
+ไฟล์ที่แก้: backend/app/db/models.py
+ผลตรวจ: `cd backend && python - <<'PY' ...` สร้าง schema ใน SQLite memory และตรวจพบคอลัมน์ `geo_point` พร้อม `job_status_history`, `refunds`, `time_slots` ถูกสร้างทันที -> OK
+สิ่งที่ทีมควรตรวจด้วยตาก่อน commit: ตรวจว่าฟิลด์ lat/lng ยังใช้งานสำหรับการคำนวณภายในระบบตาม BR-03 โดยไม่ยกเลิกความเป็น PII ของ geo_point และให้แน่ใจว่า API หรือ payload ภายนอกไม่ส่งค่า geo_point ออกมา
